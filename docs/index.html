@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Backrooms — Escape the Infinite</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --yellow:   #c8a84b;
+    --yellow-dim:#7a641f;
+    --bg:       #0c0b07;
+    --text:     #cfc9a8;
+    --mono:     'Share Tech Mono', monospace;
+    --display:  'VT323', monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── SCANLINE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 3px,
+      rgba(0,0,0,0.08) 3px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── FLICKER ANIMATION ── */
+  @keyframes flicker {
+    0%,100% { opacity: 1; }
+    92% { opacity: 1; }
+    93% { opacity: 0.4; }
+    94% { opacity: 1; }
+    97% { opacity: 0.7; }
+    98% { opacity: 1; }
+  }
+  @keyframes blink {
+    0%,49% { opacity: 1; }
+    50%,100% { opacity: 0; }
+  }
+  @keyframes glitch {
+    0%,100% { transform: translate(0); }
+    20% { transform: translate(-2px, 1px); }
+    40% { transform: translate(2px, -1px); }
+    60% { transform: translate(-1px, 2px); }
+    80% { transform: translate(1px, -2px); }
+  }
+  @keyframes drift {
+    0%   { background-position: 0% 0%; }
+    100% { background-position: 100% 100%; }
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 20px 40px;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 50%, rgba(185,170,105,0.05) 0%, transparent 70%),
+      repeating-linear-gradient(90deg, rgba(185,170,105,0.03) 0px, transparent 1px, transparent 60px, rgba(185,170,105,0.03) 61px),
+      repeating-linear-gradient(0deg,  rgba(185,170,105,0.03) 0px, transparent 1px, transparent 60px, rgba(185,170,105,0.03) 61px),
+      #0c0b07;
+    animation: flicker 8s infinite;
+    position: relative;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 100% 60% at 50% 100%, rgba(0,0,0,0.7) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--yellow-dim);
+    margin-bottom: 18px;
+  }
+
+  .hero-title {
+    font-family: var(--display);
+    font-size: clamp(64px, 12vw, 120px);
+    color: var(--yellow);
+    line-height: 0.95;
+    text-shadow:
+      0 0 20px rgba(200,168,75,0.4),
+      0 0 60px rgba(200,168,75,0.15);
+    animation: glitch 12s infinite;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+
+  .hero-sub {
+    font-family: var(--display);
+    font-size: clamp(22px, 4vw, 36px);
+    color: #8a7840;
+    letter-spacing: 0.2em;
+    margin-bottom: 40px;
+  }
+
+  .hero-desc {
+    max-width: 540px;
+    color: #9a9070;
+    font-size: 13px;
+    line-height: 1.8;
+    margin-bottom: 48px;
+  }
+
+  /* ── DOWNLOAD BLOCK ── */
+  .download-block {
+    background: rgba(200,168,75,0.05);
+    border: 1px solid var(--yellow-dim);
+    padding: 28px 36px;
+    text-align: center;
+    max-width: 420px;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+  .price-tag {
+    font-family: var(--display);
+    font-size: 52px;
+    color: var(--yellow);
+    line-height: 1;
+    text-shadow: 0 0 20px rgba(200,168,75,0.5);
+    margin-bottom: 4px;
+  }
+  .price-sub {
+    font-size: 11px;
+    color: #6a6040;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 22px;
+  }
+  .dl-btn {
+    display: block;
+    width: 100%;
+    background: var(--yellow);
+    color: #0c0b07;
+    font-family: var(--display);
+    font-size: 26px;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+    padding: 14px 24px;
+    transition: background 0.15s, box-shadow 0.15s;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  .dl-btn:hover {
+    background: #e8c860;
+    box-shadow: 0 0 30px rgba(200,168,75,0.5);
+  }
+  .dl-note {
+    font-size: 10px;
+    color: #4a4430;
+    letter-spacing: 0.15em;
+  }
+
+  /* ── SEPARATOR ── */
+  .sep {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 40px;
+    margin: 0;
+  }
+  .sep-line { flex: 1; height: 1px; background: rgba(200,168,75,0.12); }
+  .sep-text {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: #3a3520;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* ── LEVELS HEADER ── */
+  .levels-header {
+    text-align: center;
+    padding: 48px 20px 0;
+  }
+  .levels-header h2 {
+    font-family: var(--display);
+    font-size: 42px;
+    color: var(--yellow);
+    letter-spacing: 0.15em;
+    margin-bottom: 8px;
+  }
+  .levels-header p {
+    font-size: 12px;
+    color: #5a5438;
+    letter-spacing: 0.2em;
+  }
+
+  /* ── LEVEL CARDS ── */
+  .level-card {
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    padding: 0 40px;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    cursor: default;
+    transition: filter 0.2s;
+  }
+  .level-card:hover { filter: brightness(1.15); }
+
+  .level-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.12;
+  }
+  /* Per-level backgrounds */
+  .lv-timmy   { background: linear-gradient(135deg, #050820 0%, #0a1040 50%, #060c25 100%); }
+  .lv-timmy::before   { background: url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='1' fill='%231a3080'/%3E%3C/svg%3E") repeat; }
+
+  .lv-felix   { background: linear-gradient(135deg, #140c05 0%, #251505 50%, #0e0803 100%); }
+  .lv-lucas   { background: linear-gradient(135deg, #041204 0%, #071a07 50%, #030d03 100%); }
+  .lv-marshall{ background: linear-gradient(135deg, #1a0520 0%, #280830 50%, #110314 100%); }
+  .lv-ricky   { background: linear-gradient(135deg, #03030f 0%, #060615 50%, #020209 100%); }
+  .lv-default { background: linear-gradient(135deg, #0c0b07 0%, #1a180e 50%, #0c0b07 100%); }
+
+  .level-num {
+    font-family: var(--display);
+    font-size: 58px;
+    line-height: 1;
+    opacity: 0.18;
+    min-width: 72px;
+    margin-right: 20px;
+    flex-shrink: 0;
+  }
+  .level-content { flex: 1; min-width: 0; }
+  .level-name {
+    font-family: var(--display);
+    font-size: 28px;
+    letter-spacing: 0.1em;
+    line-height: 1.1;
+  }
+  .level-tagline {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    margin-top: 4px;
+    opacity: 0.7;
+  }
+  .level-pill {
+    font-size: 10px;
+    padding: 3px 10px;
+    border: 1px solid currentColor;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-left: 28px;
+    flex-shrink: 0;
+    opacity: 0.75;
+    white-space: nowrap;
+  }
+
+  /* Level accent colors */
+  .lv-timmy   .level-name, .lv-timmy   .level-num, .lv-timmy   .level-pill { color: #6688ff; }
+  .lv-timmy   .level-tagline { color: #4466cc; }
+  .lv-felix   .level-name, .lv-felix   .level-num, .lv-felix   .level-pill { color: #cc44ff; }
+  .lv-felix   .level-tagline { color: #8822bb; }
+  .lv-lucas   .level-name, .lv-lucas   .level-num, .lv-lucas   .level-pill { color: #eecc22; }
+  .lv-lucas   .level-tagline { color: #998811; }
+  .lv-marshall.level-card .level-name,
+  .lv-marshall.level-card .level-num,
+  .lv-marshall.level-card .level-pill { color: #ff88ff; }
+  .lv-marshall.level-card .level-tagline { color: #cc55cc; }
+  .lv-ricky   .level-name, .lv-ricky   .level-num, .lv-ricky   .level-pill { color: #a0a0ee; }
+  .lv-ricky   .level-tagline { color: #6666aa; }
+  .lv-default .level-name, .lv-default .level-num, .lv-default .level-pill { color: var(--yellow); }
+  .lv-default .level-tagline { color: var(--yellow-dim); }
+
+  /* ── FEATURES STRIP ── */
+  .features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    border-top: 1px solid rgba(200,168,75,0.1);
+    border-bottom: 1px solid rgba(200,168,75,0.1);
+    margin: 48px 0 0;
+  }
+  .feature {
+    flex: 1 1 200px;
+    padding: 28px 28px;
+    border-right: 1px solid rgba(200,168,75,0.08);
+    text-align: center;
+  }
+  .feature:last-child { border-right: none; }
+  .feature-icon {
+    font-size: 28px;
+    margin-bottom: 10px;
+    display: block;
+  }
+  .feature-title {
+    font-family: var(--display);
+    font-size: 20px;
+    color: var(--yellow);
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .feature-body {
+    font-size: 11px;
+    color: #5a5438;
+    line-height: 1.7;
+  }
+
+  /* ── BOTTOM CTA ── */
+  .bottom-cta {
+    text-align: center;
+    padding: 60px 20px 80px;
+    background: radial-gradient(ellipse 60% 80% at 50% 100%, rgba(185,170,105,0.04) 0%, transparent 70%);
+  }
+  .bottom-cta h2 {
+    font-family: var(--display);
+    font-size: clamp(36px, 6vw, 60px);
+    color: var(--yellow);
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+    text-shadow: 0 0 30px rgba(200,168,75,0.2);
+  }
+  .bottom-cta p {
+    font-size: 12px;
+    color: #4a4430;
+    letter-spacing: 0.2em;
+    margin-bottom: 36px;
+  }
+  .dl-btn-sm {
+    display: inline-block;
+    background: transparent;
+    border: 1px solid var(--yellow-dim);
+    color: var(--yellow);
+    font-family: var(--display);
+    font-size: 22px;
+    letter-spacing: 0.12em;
+    text-decoration: none;
+    padding: 12px 40px;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .dl-btn-sm:hover {
+    background: rgba(200,168,75,0.08);
+    border-color: var(--yellow);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid rgba(200,168,75,0.08);
+    text-align: center;
+    padding: 20px;
+    font-size: 10px;
+    color: #2a2818;
+    letter-spacing: 0.2em;
+  }
+
+  /* ── BLINK CURSOR ── */
+  .cursor::after {
+    content: '_';
+    animation: blink 1s step-end infinite;
+    color: var(--yellow);
+  }
+
+  @media (max-width: 600px) {
+    .level-card { padding: 0 20px; }
+    .level-pill { display: none; }
+    .level-num { font-size: 40px; min-width: 52px; }
+    .level-name { font-size: 22px; }
+    .download-block { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── HERO ─────────────────────────────────────────────────────────────── -->
+<section class="hero">
+  <p class="hero-eyebrow">Madhav Jhunjhunwala presents</p>
+  <h1 class="hero-title">THE<br>BACKROOMS</h1>
+  <p class="hero-sub">ESCAPE THE INFINITE<span class="cursor"></span></p>
+  <p class="hero-desc">
+    A first-person raycasting survival game built in Python. Six levels. Six monsters. 
+    No exit. Navigate endless fluorescent hallways, collect sanity, and pray 
+    the entity doesn't find you first.
+  </p>
+
+  <div class="download-block">
+    <div class="price-tag">$1.00</div>
+    <div class="price-sub">one dollar. worth every cent.</div>
+    <a class="dl-btn" href="https://drive.google.com/drive/folders/1FZHkJNfJeyz5JaQtXBdkBOD0R6NAdsKA?usp=sharing" target="_blank" rel="noopener">
+      ▶ DOWNLOAD .EXE
+    </a>
+    <p class="dl-note">WINDOWS EXECUTABLE · NO INSTALL REQUIRED · PYTHON NOT NEEDED</p>
+  </div>
+</section>
+
+<!-- ── LEVELS HEADER ──────────────────────────────────────────────────── -->
+<div class="levels-header">
+  <h2>6 LEVELS OF DREAD</h2>
+  <p>PRESS M IN-GAME TO SWITCH · EACH LEVEL IS ITS OWN NIGHTMARE</p>
+</div>
+
+<div class="sep" style="margin-top:24px;"><div class="sep-line"></div><div class="sep-text">the levels</div><div class="sep-line"></div></div>
+
+<!-- ── LEVEL CARDS ────────────────────────────────────────────────────── -->
+
+<div class="level-card lv-timmy">
+  <div class="level-num">01</div>
+  <div class="level-content">
+    <div class="level-name">TIMMY'S BLUE DIAMOND</div>
+    <div class="level-tagline">⌐ baseball bats scattered for sanity · pasta sauce thrown at lethal velocity · deep blue walls that never end</div>
+  </div>
+  <div class="level-pill">PASTA MONSTER</div>
+</div>
+
+<div class="level-card lv-felix">
+  <div class="level-num">02</div>
+  <div class="level-content">
+    <div class="level-name">FELIX'S UGLY DUNGEON</div>
+    <div class="level-tagline">╱ broken golf clubs & drumsticks litter the floor · Felix himself hurls double kick drums at your skull</div>
+  </div>
+  <div class="level-pill">DOUBLE KICK</div>
+</div>
+
+<div class="level-card lv-lucas">
+  <div class="level-num">03</div>
+  <div class="level-content">
+    <div class="level-name">LUCAS'S TIGER WOODS ZONE</div>
+    <div class="level-tagline">⚑ golf flag pins everywhere · child Tiger Woods drunk-drives a cart directly into you at full speed</div>
+  </div>
+  <div class="level-pill">FORE!</div>
+</div>
+
+<div class="level-card lv-marshall">
+  <div class="level-num">04</div>
+  <div class="level-content">
+    <div class="level-name">MARSHALL'S LUCKY CHARMS</div>
+    <div class="level-tagline">☘ shamrocks line the purple halls · a leprechaun pelts you with marshmallows, pots of gold, and rainbows</div>
+  </div>
+  <div class="level-pill">MAGICALLY DEADLY</div>
+</div>
+
+<div class="level-card lv-ricky">
+  <div class="level-num">05</div>
+  <div class="level-content">
+    <div class="level-name">RICKY'S YANKEE STADIUM</div>
+    <div class="level-tagline">◇ pinstripes in the dark · Ricky winds up and fires 98mph fastballs from the shadows. no warning.</div>
+  </div>
+  <div class="level-pill">PLAY BALL</div>
+</div>
+
+<div class="level-card lv-default">
+  <div class="level-num">06</div>
+  <div class="level-content">
+    <div class="level-name">THE BACKROOMS — CLASSIC</div>
+    <div class="level-tagline">~ the original. yellow wallpaper. buzzing fluorescents. something in the dark that never stops moving.</div>
+  </div>
+  <div class="level-pill">NO GIMMICKS</div>
+</div>
+
+<!-- ── FEATURES ───────────────────────────────────────────────────────── -->
+<div class="features">
+  <div class="feature">
+    <span class="feature-icon">👁</span>
+    <div class="feature-title">RAYCASTING ENGINE</div>
+    <div class="feature-body">Real 3D perspective rendered from scratch in Python. No Unity. No Unreal. Pure math.</div>
+  </div>
+  <div class="feature">
+    <span class="feature-icon">🧠</span>
+    <div class="feature-title">SANITY SYSTEM</div>
+    <div class="feature-body">Every second you breathe, your sanity drains. Find pickups or accept your fate.</div>
+  </div>
+  <div class="feature">
+    <span class="feature-icon">🎯</span>
+    <div class="feature-title">PROJECTILE AI</div>
+    <div class="feature-body">Each monster throws its signature weapon at you. Dodge or die. Usually die.</div>
+  </div>
+  <div class="feature">
+    <span class="feature-icon">🗺</span>
+    <div class="feature-title">INFINITE MAZE</div>
+    <div class="feature-body">Procedurally generated every level. No two runs are the same. No memorizing the layout.</div>
+  </div>
+</div>
+
+<!-- ── BOTTOM CTA ─────────────────────────────────────────────────────── -->
+<div class="bottom-cta">
+  <h2>READY TO NOT ESCAPE?</h2>
+  <p>ONE DOLLAR. ONE DOWNLOAD. INFINITE REGRET.</p>
+  <a class="dl-btn-sm" href="https://drive.google.com/drive/folders/1FZHkJNfJeyz5JaQtXBdkBOD0R6NAdsKA?usp=sharing" target="_blank" rel="noopener">
+    GET THE GAME — $1.00
+  </a>
+</div>
+
+<!-- ── FOOTER ─────────────────────────────────────────────────────────── -->
+<footer>
+  © 2026 MADHAV JHUNJHUNWALA · THE BACKROOMS · ESCAPE THE INFINITE · ALL HORRORS RESERVED
+</footer>
+
+</body>
+</html>
